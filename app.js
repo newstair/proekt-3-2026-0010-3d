@@ -5614,6 +5614,12 @@ function orderDisplay(value) {
   return orderText(value) || '—';
 }
 
+function orderClientField(value) {
+  const text = orderText(value);
+  if (text) return text;
+  return window.INTERNAL_MODE ? '—' : '________________';
+}
+
 function orderIsPlaceholder(value) {
   const text = orderText(value);
   return !text || text === '—' || text === '-' || text === '–' || text.toLowerCase() === 'n/a';
@@ -5910,13 +5916,18 @@ async function renderOrderPdfTopView() {
 }
 
 function scheduleOrderPdfTopView() {
-  if (!window.INTERNAL_MODE) return;
+  const delay = window.INTERNAL_MODE ? 1500 : 5000;
   window.setTimeout(() => {
-    if (!orderPdfTopView && !orderPdfTopViewPromise) {
-      renderOrderPdfTopView().catch(() => {});
+    if (window.INTERNAL_MODE) {
+      if (!orderPdfTopView && !orderPdfTopViewPromise) {
+        renderOrderPdfTopView().catch(() => {});
+      }
+      prepareOrderCalculation().catch(() => {});
+    } else {
+      // Публичная страница: заранее готовим DXF для бланка заказа и договора.
+      loadAllDXF().catch(() => {});
     }
-    prepareOrderCalculation().catch(() => {});
-  }, 1500);
+  }, delay);
 }
 
 function orderHasValue(value) {
@@ -6230,10 +6241,10 @@ async function buildOrderModal() {
         '</div>' +
         '<div class="order-info-card">' +
           '<div class="order-info-title">Заказчик</div>' +
-          infoLine('ФИО / название', project.clientName) +
-          infoLine('Телефон', project.phone) +
-          infoLine('E-mail', project.email) +
-          infoLine('Адрес', project.address) +
+          infoLine('ФИО / название', orderClientField(project.clientName)) +
+          infoLine('Телефон', orderClientField(project.phone)) +
+          infoLine('E-mail', orderClientField(project.email)) +
+          infoLine('Адрес', orderClientField(project.address)) +
           legalBlock +
         '</div>' +
         '<div class="order-info-card order-info-card-wide">' +
@@ -6501,10 +6512,10 @@ function buildOrderPrintHtml() {
         (ORDER_COMPANY.email ? '<p>E-mail: ' + escapeTechHtml(ORDER_COMPANY.email) + '</p>' : '') +
       '</div>' +
       '<div class="party"><h2>Заказчик</h2>' +
-        '<p class="strong">' + escapeTechHtml(orderDisplay(project.clientName)) + '</p>' +
-        '<p>Тел.: ' + escapeTechHtml(orderDisplay(project.phone)) + '</p>' +
-        '<p>E-mail: ' + escapeTechHtml(orderDisplay(project.email)) + '</p>' +
-        '<p>Адрес: ' + escapeTechHtml(orderDisplay(project.address)) + '</p>' +
+        '<p class="strong">' + escapeTechHtml(orderClientField(project.clientName)) + '</p>' +
+        '<p>Тел.: ' + escapeTechHtml(orderClientField(project.phone)) + '</p>' +
+        '<p>E-mail: ' + escapeTechHtml(orderClientField(project.email)) + '</p>' +
+        '<p>Адрес: ' + escapeTechHtml(orderClientField(project.address)) + '</p>' +
         (project.clientType === 'legal' ? '<p class="strong">Юридическое лицо · реквизиты заполняются</p>' : '') +
       '</div>' +
       '<div class="party"><h2>Проект</h2>' +

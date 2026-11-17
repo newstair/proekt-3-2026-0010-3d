@@ -12,7 +12,7 @@
 <meta property="og:type" content="website">
 <link rel="stylesheet" href="style.css?v=206c9afb">
 <style id="client-mode">
-  #btnOrder, #btnTechCard, #btnAdminCost { display: none !important; }
+  #btnTechCard, #btnAdminCost, .order-footer-check { display: none !important; }
 </style>
 </head>
 <body>
@@ -32,12 +32,16 @@
 
 <aside class="panel hidden" id="panel">
 
-  <button class="btn primary big" id="btnPrice" style="display:none;">
+  <button class="btn primary big" id="btnPrice">
     <span class="ico">💰</span> Детали расчёта
   </button>
 
-  <button class="btn big" id="btnOrder" style="display:none;">
+  <button class="btn big" id="btnOrder">
     <span class="ico">📄</span> Бланк заказа
+  </button>
+
+  <button class="btn big" id="btnContract">
+    <span class="ico">📝</span> Договор
   </button>
 
   <button class="btn big" id="btnTechCard">
@@ -444,6 +448,6 @@
 }
 </script>
 
-<script type="module" src="app.js?v=cf07098f"></script>
+<script type="module" src="app.js?v=d42346ce"></script>
 </body>
 </html>

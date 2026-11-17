@@ -3,6 +3,7 @@ import { OrbitControls }  from 'three/addons/controls/OrbitControls.js';
 import { ColladaLoader }  from 'three/addons/loaders/ColladaLoader.js';
 import { GLTFLoader }     from 'three/addons/loaders/GLTFLoader.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { printContract } from './contract.js';
 
 /* ═══════════════════════════════════════════════════════════════
    КОНСТАНТЫ
@@ -5847,6 +5848,14 @@ async function renderOrderPdfTopView() {
   orderPdfTopViewPromise = (async () => {
     try {
       const drawings = await loadDrawingsData();
+      const topViewPath = drawings && typeof drawings.topView === 'string' ? drawings.topView : '';
+      if (topViewPath) {
+        const topViewUrl = orderAbsoluteUrl(topViewPath);
+        if (topViewUrl) {
+          orderPdfTopView = { dataUrl: topViewUrl, name: 'Вид сверху', width: 0, height: 0 };
+          return orderPdfTopView;
+        }
+      }
       const pdf = drawings && Array.isArray(drawings.pdf) ? drawings.pdf[0] : null;
       if (!pdf) return null;
       if (typeof pdfjsLib === 'undefined') {
@@ -6794,6 +6803,26 @@ setupGeneratePriceButton();
 document.getElementById('btnParams').addEventListener('click', paramsModal.openFn);
 document.getElementById('btnDrawings').addEventListener('click', drawingsModal.openFn);
 document.getElementById('btnOrder').addEventListener('click', orderModal.openFn);
+document.getElementById('btnContract').addEventListener('click', async () => {
+  try {
+    showToast('Подготовка договора…');
+    await prepareOrderCalculation();
+    const result = calculatePrice(currentKm);
+    if (!result.groups || !result.groups.length) {
+      showToast('Нет данных для договора', true);
+      return;
+    }
+    printContract({
+      project: getOrderProject(),
+      company: ORDER_COMPANY,
+      contractTotal: (Number(result.materialTotal) || 0) + (Number(result.paintTotal) || 0),
+      date: new Date()
+    });
+  } catch (error) {
+    console.error('Не удалось сформировать договор:', error);
+    showToast('Не удалось сформировать договор', true);
+  }
+});
 document.getElementById('btnTechCard').addEventListener('click', techCardModal.openFn);
 document.getElementById('techCardRefresh').addEventListener('click', () => {
   buildTechCardModal();

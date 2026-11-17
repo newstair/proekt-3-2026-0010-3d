@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 63.159999999999854 69.66" width="100%" height="100%" role="img">
+  <rect width="100%" height="100%" fill="#ffffff" />
+  <g transform="translate(-1207.42 301.08) scale(1 -1)">
+    <path d="M 1250 240 L 1250 269 L 1250 298 L 1210 298 L 1210 240 L 1210 234 L 1250 234 L 1250 240" fill="none" stroke="#1f2937" stroke-width="1" vector-effect="non-scaling-stroke" />
+    
+  </g>
+  <g fill="#111827" font-family="Arial, Helvetica, sans-serif" text-anchor="start">
+    <text x="42.57999999999993" y="17.579999999999984" font-size="15" transform="rotate(-304 42.57999999999993 17.579999999999984)">13</text>
+  </g>
+</svg>

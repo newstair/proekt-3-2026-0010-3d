@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 86.4 12.400000000000002" width="100%" height="100%" role="img">
+  <rect width="100%" height="100%" fill="#ffffff" />
+  <g transform="translate(-16.8 36.2) scale(1 -1)">
+    <path d="M 60.001 27 L 20.001 27 L 20.001 33 L 60.001 33 M 60.001 30 L 20.001 30 M 20 33 L 60 33 L 60 27 L 20 27 M 20 30 L 60 30 M 20 33 L 100 33 L 100 27 L 20 27 M 20 30 L 100 30" fill="none" stroke="#1f2937" stroke-width="1" vector-effect="non-scaling-stroke" />
+    
+  </g>
+  <g fill="#111827" font-family="Arial, Helvetica, sans-serif" text-anchor="start">
+    
+  </g>
+</svg>

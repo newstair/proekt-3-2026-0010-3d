@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 988.2 563.76" width="100%" height="100%" role="img">
+  <rect width="100%" height="100%" fill="#ffffff" />
+  <g transform="translate(181.6 487.16) scale(1 -1)">
+    <path d="M -100 -40 L -100 303.06 M -120 -20 L -60 -20 M -120 283.06 L -60 283.06 M -107.071 -12.929 L -92.929 -27.071 M -107.071 290.131 L -92.929 275.989 M -20 383.06 L 770 383.06 M 0 403.06 L 0 343.06 M 750 403.06 L 750 343.06 M 7.071 390.131 L -7.071 375.989 M 757.071 390.131 L 742.929 375.989" fill="none" stroke="#1f2937" stroke-width="1" vector-effect="non-scaling-stroke" />
+    
+  </g>
+  <g fill="#111827" font-family="Arial, Helvetica, sans-serif" text-anchor="start">
+    <text x="36.599999999999994" y="388.817" font-size="22.5" transform="rotate(-90 36.599999999999994 388.817)">303</text><text x="523.413" y="59.10000000000002" font-size="22.5">750</text>
+  </g>
+</svg>

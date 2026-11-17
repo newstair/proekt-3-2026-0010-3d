@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1058.4 568.96" width="100%" height="100%" role="img">
+  <rect width="100%" height="100%" fill="#ffffff" />
+  <g transform="translate(184.2 489.76) scale(1 -1)">
+    <path d="M 735 263.06 L 735 241.06 L 750 241.06 L 750 22 L 735 22 L 735 0 L 15 0 L 15 22 L 0 22 L 0 241.06 L 15 241.06 L 15 263.06 L 735 263.06 M -1 56 L 375 56 L 751 56 L 757 56 L 757 40 L 751 40 L -1 40 L -7 40 L -7 56 L -1 56 M 750 37 L 695 37 L 695 43 L 750 43 M 750 40 L 695 40 M 750 220.06 L 695 220.06 L 695 226.06 L 750 226.06 M 750 223.06 L 695 223.06 M 0 43 L 55 43 L 55 37 L 0 37 M 0 40 L 55 40 M 0 226.06 L 55 226.06 L 55 220.06 L 0 220.06 M 0 223.06 L 55 223.06 M 835 0 L -85 0 M -85 263.06 L 835 263.06 M -100 -40 L -100 303.06 M -120 -20 L -60 -20 M -120 283.06 L -60 283.06 M -107.071 -12.929 L -92.929 -27.071 M -107.071 290.131 L -92.929 275.989 M -20 383.06 L 770 383.06 M 0 403.06 L 0 343.06 M 750 403.06 L 750 343.06 M 7.071 390.131 L -7.071 375.989 M 757.071 390.131 L 742.929 375.989" fill="none" stroke="#1f2937" stroke-width="1" vector-effect="non-scaling-stroke" />
+    
+  </g>
+  <g fill="#111827" font-family="Arial, Helvetica, sans-serif" text-anchor="start">
+    <text x="559.2" y="226.7" font-size="15" transform="rotate(-360 559.2 226.7)">1_Tr12</text><text x="39.19999999999999" y="391.417" font-size="22.5" transform="rotate(-90 39.19999999999999 391.417)">303</text><text x="526.0129999999999" y="61.69999999999999" font-size="22.5">750</text>
+  </g>
+</svg>

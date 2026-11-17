@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1632.5139599999998 440.92696" width="100%" height="100%" role="img">
+  <rect width="100%" height="100%" fill="#ffffff" />
+  <g transform="translate(180.46348 380.46348) scale(1 -1)">
+    <path d="M 1391.587 80 L 1391.587 0 L 0 0 L 0 80 L 1391.587 80 M 1391.587 160 L 1391.587 80 L 0 80 L 0 160 L 1391.587 160 M 1391.587 240 L 1391.587 160 L 0 160 L 0 240 L 1391.587 240 M 1391.587 320 L 1391.587 240 L 0 240 L 0 320 L 1391.587 320" fill="none" stroke="#1f2937" stroke-width="1" vector-effect="non-scaling-stroke" />
+    
+  </g>
+  <g fill="#111827" font-family="Arial, Helvetica, sans-serif" text-anchor="start">
+    <text x="60.463480000000004" y="340.46348" font-size="15">1 Верх.</text><text x="60.463480000000004" y="260.46348" font-size="15">2 Лев.</text><text x="60.463480000000004" y="180.46348" font-size="15">3 Нижн.</text><text x="60.463480000000004" y="100.46348" font-size="15">4 Прав.</text>
+  </g>
+</svg>

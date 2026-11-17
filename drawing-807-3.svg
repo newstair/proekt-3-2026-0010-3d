@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 277.301 515.7" width="100%" height="100%" role="img">
+  <rect width="100%" height="100%" fill="#ffffff" />
+  <g transform="translate(164.1 376.6) scale(1 -1)">
+    <path d="M -20 290 L 80.001 290 M 0 310 L 0 250 M 60.001 310 L 60.001 250 M 7.071 297.071 L -7.071 282.929 M 67.072 297.071 L 52.93 282.929 M -20 -100 L 80.001 -100 M 0 -120 L 0 -60 M 20 -120 L 20 -60 M 60.001 -120 L 60.001 -60 M 7.071 -92.929 L -7.071 -107.071 M 27.071 -92.929 L 12.929 -107.071 M 67.072 -92.929 L 52.93 -107.071 M -100 -20 L -100 110 M -120 0 L -60 0 M -120 90 L -60 90 M -107.071 7.071 L -92.929 -7.071 M -107.071 97.071 L -92.929 82.929 M -20 190 L 80.001 190 M 0 210 L 0 150 M 60.001 210 L 60.001 150 M 7.071 197.071 L -7.071 182.929 M 67.072 197.071 L 52.93 182.929" fill="none" stroke="#1f2937" stroke-width="1" vector-effect="non-scaling-stroke" />
+    
+  </g>
+  <g fill="#111827" font-family="Arial, Helvetica, sans-serif" text-anchor="start">
+    <text x="204.1" y="331.6" font-size="15" transform="rotate(-270 204.1 331.6)">45°</text><text x="171.976" y="41.60000000000002" font-size="22.5">60</text><text x="106.35" y="431.6" font-size="22.5" transform="rotate(360 106.35 431.6)">20</text><text x="231.201" y="431.6" font-size="22.5" transform="rotate(360 231.201 431.6)">40</text><text x="19.099999999999994" y="353.725" font-size="22.5" transform="rotate(-90 19.099999999999994 353.725)">90</text><text x="171.976" y="141.60000000000002" font-size="22.5">60</text>
+  </g>
+</svg>

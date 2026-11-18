@@ -3,7 +3,7 @@ import { OrbitControls }  from 'three/addons/controls/OrbitControls.js';
 import { ColladaLoader }  from 'three/addons/loaders/ColladaLoader.js';
 import { GLTFLoader }     from 'three/addons/loaders/GLTFLoader.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-import { printContract } from './contract.js?v=41f0b07f';
+import { printContract } from './contract.js';
 
 /* ═══════════════════════════════════════════════════════════════
    КОНСТАНТЫ
@@ -6104,13 +6104,10 @@ function buildOrderTableRows(groups, withoutPrices) {
 
     categories.forEach((category) => {
       index += 1;
-      const note = category.priceNote
-        ? '<div class="order-row-note">' + escapeTechHtml(category.priceNote) + '</div>'
-        : '';
       const baseCells =
         '<td class="num">' + index + '</td>' +
         '<td>' + escapeTechHtml(category.name || '—') + '</td>' +
-        '<td class="mat">' + escapeTechHtml(category.materialName || '—') + note + '</td>' +
+        '<td class="mat">' + escapeTechHtml(category.materialName || '—') + '</td>' +
         '<td>' + escapeTechHtml(category.paintName || '—') + '</td>' +
         '<td class="qty">' + escapeTechHtml(orderQuantityText(category)) + '</td>';
 

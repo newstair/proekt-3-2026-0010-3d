@@ -679,6 +679,9 @@
     color:var(--text);font-size:13px;
   }
   .order-term-field input:focus{border-color:var(--accent);outline:none;}
+  .order-term-inline{display:flex;align-items:center;gap:8px;}
+  .order-term-inline input{flex:1;min-width:0;width:auto;}
+  .order-term-amount{white-space:nowrap;font-size:12px;font-weight:600;color:var(--text);}
   .order-terms-preview{
     display:flex;flex-wrap:wrap;gap:6px 16px;
     font-size:12px;color:var(--muted);

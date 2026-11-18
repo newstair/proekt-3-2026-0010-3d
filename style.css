@@ -133,13 +133,13 @@
   .acc-header .ico{font-size:14px;margin-right:6px;}
   .acc-header .arrow{font-size:11px;color:var(--muted);
     transition:transform .2s;margin-left:auto;}
-  .acc.open .acc-header .arrow{transform:rotate(90deg);}
+  .acc.open > .acc-header .arrow{transform:rotate(90deg);}
   .acc-body{
     display:none;flex-direction:column;gap:8px;
     padding:10px;background:rgba(0,0,0,.15);
     border-top:1px solid var(--border);
   }
-  .acc.open .acc-body{display:flex;}
+  .acc.open > .acc-body{display:flex;}
   .panel-note{
     margin-top:2px;padding:8px 10px;border:1px solid rgba(91,140,255,.25);
     background:rgba(91,140,255,.07);border-radius:8px;color:#b9c8e6;

@@ -985,10 +985,12 @@ function loadCollada(url, fileName) {
       panelEl.classList.remove('hidden');
       fitCamera();
       applyUrlState();
+      clientStateReady = true;
 
       priceBtn.style.display = 'inline-flex';
       document.getElementById('btnOrder').style.display = 'inline-flex';
       updatePriceSummary();
+      saveClientStateSoon();
     },
     (evt) => {
       if (evt && evt.total) {
@@ -1618,6 +1620,47 @@ function applyClientState(state) {
   updatePriceSummary();
 }
 
+const CLIENT_STATE_STORAGE_PREFIX = 'lignarius:client-state:';
+let clientStateReady = false;
+let clientStateSaveTimer = null;
+
+function clientStateStorageKey() {
+  return CLIENT_STATE_STORAGE_PREFIX + location.pathname;
+}
+
+function restoreClientStateFromStorage() {
+  try {
+    const raw = localStorage.getItem(clientStateStorageKey());
+    if (!raw) return false;
+    const state = JSON.parse(raw);
+    if (!state || typeof state !== 'object' || Array.isArray(state)) return false;
+    applyClientState(state);
+    return true;
+  } catch (error) {
+    console.warn('Не удалось восстановить настройки из браузера:', error);
+    return false;
+  }
+}
+
+function saveClientStateSoon() {
+  if (!clientStateReady) return;
+  clearTimeout(clientStateSaveTimer);
+  clientStateSaveTimer = setTimeout(() => {
+    try {
+      const state = buildClientState();
+      localStorage.setItem(clientStateStorageKey(), JSON.stringify(state));
+    } catch (error) {
+      // localStorage может быть недоступен; ниже всё равно обновим ссылку.
+    }
+    try {
+      const rid = new URLSearchParams(location.search).get('rid');
+      replaceHistoryUrl(buildShareUrl(rid || undefined));
+    } catch (error) {
+      // В sandboxed iframe history может быть недоступна.
+    }
+  }, 400);
+}
+
 function applyUrlState() {
   const params = new URLSearchParams(location.search);
   const cam = parseVec3(params.get('cam'));
@@ -1639,13 +1682,16 @@ function applyUrlState() {
   }
 
   const rawState = params.get('state');
+  let appliedFromUrl = false;
   if (rawState && rawState.length <= 20000) {
     try {
       applyClientState(JSON.parse(rawState));
+      appliedFromUrl = true;
     } catch (error) {
       console.warn('Не удалось применить состояние из ссылки:', error);
     }
   }
+  if (!appliedFromUrl) restoreClientStateFromStorage();
 }
 
 function buildShareUrl(requestId) {
@@ -1738,6 +1784,10 @@ if (isMobile()) {
 panelToggle.addEventListener('click', () => {
   const isOpen = panelEl.classList.toggle('open');
   panelToggle.classList.toggle('active', isOpen);
+});
+
+['click', 'input', 'change'].forEach((eventName) => {
+  panelEl.addEventListener(eventName, saveClientStateSoon);
 });
 
 function reorderPanelLayout() {
@@ -5435,6 +5485,7 @@ function updatePriceSummary() {
     if (priceSummary) priceSummary.style.display = 'none';
     return;
   }
+  saveClientStateSoon();
   if (!priceSummary) return;
   priceSummary.style.display = 'block';
   priceSummary.innerHTML = 'Предварительно<b>' + formatRub(result.total) + '</b>';

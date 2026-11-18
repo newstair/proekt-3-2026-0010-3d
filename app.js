@@ -1691,7 +1691,16 @@ function applyUrlState() {
       console.warn('Не удалось применить состояние из ссылки:', error);
     }
   }
-  if (!appliedFromUrl) restoreClientStateFromStorage();
+  if (!appliedFromUrl) {
+    const restored = restoreClientStateFromStorage();
+    if (!restored && projectParams && projectParams.default_state && typeof projectParams.default_state === 'object') {
+      try {
+        applyClientState(projectParams.default_state);
+      } catch (error) {
+        console.warn('Не удалось применить настройки проекта по умолчанию:', error);
+      }
+    }
+  }
 }
 
 function buildShareUrl(requestId) {

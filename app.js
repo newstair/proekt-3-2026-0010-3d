@@ -3,7 +3,7 @@ import { OrbitControls }  from 'three/addons/controls/OrbitControls.js';
 import { ColladaLoader }  from 'three/addons/loaders/ColladaLoader.js';
 import { GLTFLoader }     from 'three/addons/loaders/GLTFLoader.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-import { printContract } from './contract.js?v=2b4fea5e';
+import { printContract } from './contract.js?v=f0c7aaec';
 
 /* ═══════════════════════════════════════════════════════════════
    КОНСТАНТЫ
@@ -5656,12 +5656,14 @@ const ORDER_COMPANY = {
 
 const ORDER_DEFAULTS = {
   prepayment: 50,
+  prepaymentAmount: null,
   leadDays: 30,
   validityDays: 14,
   warranty: '12 месяцев'
 };
 
 let orderFormState = { ...ORDER_DEFAULTS };
+let orderPrepaymentSource = 'percent';
 let orderDrawingsData = null;
 let crmProjectCache = null;
 let crmProjectPromise = null;
@@ -6095,20 +6097,49 @@ function orderGroupSum(group) {
   return (group.categories || []).reduce((sum, category) => sum + orderCategorySum(category), 0);
 }
 
-function getOrderState() {
+function getOrderState(totalValue) {
   const element = (id) => document.getElementById(id);
   const prepaymentEl = element('orderPrepayment');
+  const amountEl = element('orderPrepaymentAmount');
   const leadEl = element('orderLead');
   const validityEl = element('orderValidity');
   const warrantyEl = element('orderWarranty');
 
-  const state = {
-    prepayment: Math.round(orderClampNumber(
-      prepaymentEl ? prepaymentEl.value : orderFormState.prepayment,
-      orderFormState.prepayment,
+  const total = Number(totalValue);
+  const hasTotal = Number.isFinite(total) && total > 0;
+  let prepayment = Math.round(orderClampNumber(
+    prepaymentEl ? prepaymentEl.value : orderFormState.prepayment,
+    orderFormState.prepayment,
+    0,
+    100
+  ) * 100) / 100;
+  let prepaymentAmount = null;
+
+  if (orderPrepaymentSource === 'amount' && amountEl) {
+    const fallback = hasTotal
+      ? total * prepayment / 100
+      : (Number(orderFormState.prepaymentAmount) || 0);
+    prepaymentAmount = Math.round(orderClampNumber(
+      amountEl.value,
+      fallback,
       0,
-      100
-    )),
+      hasTotal ? total : Number.MAX_SAFE_INTEGER
+    ) * 100) / 100;
+    if (hasTotal) {
+      prepayment = Math.round((prepaymentAmount / total * 100) * 100) / 100;
+    }
+  } else if (orderPrepaymentSource === 'amount' && hasTotal && Number.isFinite(Number(orderFormState.prepaymentAmount))) {
+    prepaymentAmount = Math.round(Math.min(total, Math.max(0, Number(orderFormState.prepaymentAmount))) * 100) / 100;
+    prepayment = Math.round((prepaymentAmount / total * 100) * 100) / 100;
+  } else if (hasTotal) {
+    prepaymentAmount = Math.round((total * prepayment / 100) * 100) / 100;
+  } else if (Number.isFinite(Number(orderFormState.prepaymentAmount))) {
+    prepaymentAmount = Math.round(Number(orderFormState.prepaymentAmount) * 100) / 100;
+  }
+
+  const state = {
+    prepayment: prepayment,
+    prepaymentAmount: prepaymentAmount,
     leadDays: Math.round(orderClampNumber(
       leadEl ? leadEl.value : orderFormState.leadDays,
       orderFormState.leadDays,
@@ -6131,11 +6162,15 @@ function getOrderState() {
 
 function getOrderPayment(totalValue, state) {
   const total = Number(totalValue);
-  const roundedTotal = Math.round(Number.isFinite(total) ? total : 0);
-  const amount = Math.round(roundedTotal * state.prepayment / 100);
+  const numericTotal = Math.round((Number.isFinite(total) ? total : 0) * 100) / 100;
+  const explicitAmount = Number(state.prepaymentAmount);
+  const rawAmount = Number.isFinite(explicitAmount)
+    ? explicitAmount
+    : numericTotal * (Number(state.prepayment) || 0) / 100;
+  const amount = Math.round(rawAmount * 100) / 100;
   return {
     amount: amount,
-    balance: roundedTotal - amount
+    balance: Math.round((numericTotal - amount) * 100) / 100
   };
 }
 
@@ -6198,8 +6233,14 @@ function buildOrderTableMarkup(groups, withoutPrices) {
   '</table>';
 }
 
+function orderPercentText(value) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return '0';
+  return new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 2 }).format(number);
+}
+
 function buildOrderPaymentHtml(payment, state) {
-  return '<div class="order-payment-row"><span>Предоплата за изготовление (' + escapeTechHtml(String(state.prepayment)) + '% от изготовления и покраски)</span><span>' + formatRub(payment.amount) + '</span></div>' +
+  return '<div class="order-payment-row"><span>Предоплата за изготовление (' + orderPercentText(state.prepayment) + '% от изготовления и покраски)</span><span>' + formatRub(payment.amount) + '</span></div>' +
     '<div class="order-payment-row"><span>Остаток за изготовление</span><span>' + formatRub(payment.balance) + '</span></div>';
 }
 
@@ -6217,23 +6258,49 @@ function buildOrderTermsPreviewHtml(state) {
 }
 
 function updateOrderTermPreview(total) {
-  const state = getOrderState();
+  const state = getOrderState(total);
   const payment = getOrderPayment(total, state);
   const paymentEl = document.getElementById('orderPaymentPreview');
   const termsEl = document.getElementById('orderTermsPreview');
-  const prepaymentAmountEl = document.getElementById('orderPrepaymentAmount');
+  const percentInput = document.getElementById('orderPrepayment');
+  const amountInput = document.getElementById('orderPrepaymentAmount');
   if (paymentEl) paymentEl.innerHTML = buildOrderPaymentHtml(payment, state);
   if (termsEl) termsEl.innerHTML = buildOrderTermsPreviewHtml(state);
-  if (prepaymentAmountEl) prepaymentAmountEl.textContent = formatRub(payment.amount);
+  if (amountInput && orderPrepaymentSource !== 'amount') {
+    amountInput.value = String(Math.round(payment.amount * 100) / 100);
+  }
+  if (percentInput && orderPrepaymentSource === 'amount') {
+    percentInput.value = String(Math.round(state.prepayment * 100) / 100);
+  }
 }
 
 function bindOrderTermInputs(total) {
-  ['orderPrepayment', 'orderLead', 'orderValidity', 'orderWarranty'].forEach((id) => {
+  ['orderLead', 'orderValidity', 'orderWarranty'].forEach((id) => {
     const input = document.getElementById(id);
     if (!input) return;
     input.addEventListener('input', () => updateOrderTermPreview(total));
     input.addEventListener('change', () => updateOrderTermPreview(total));
   });
+
+  const percentInput = document.getElementById('orderPrepayment');
+  if (percentInput) {
+    const update = () => {
+      orderPrepaymentSource = 'percent';
+      updateOrderTermPreview(total);
+    };
+    percentInput.addEventListener('input', update);
+    percentInput.addEventListener('change', update);
+  }
+
+  const amountInput = document.getElementById('orderPrepaymentAmount');
+  if (amountInput) {
+    const update = () => {
+      orderPrepaymentSource = 'amount';
+      updateOrderTermPreview(total);
+    };
+    amountInput.addEventListener('input', update);
+    amountInput.addEventListener('change', update);
+  }
 }
 
 async function buildOrderModal() {
@@ -6257,8 +6324,8 @@ async function buildOrderModal() {
     const result = calculatePrice(currentKm);
     const groups = (result.groups || []).filter((group) => group.categories && group.categories.length);
     const project = getOrderProject();
-    const state = { ...orderFormState };
     const contractTotal = (Number(result.materialTotal) || 0) + (Number(result.paintTotal) || 0);
+    const state = getOrderState(contractTotal);
     const payment = getOrderPayment(contractTotal, state);
     const excluded = getExcludedSummary();
     const companyLogo = orderLogoDataUrl || orderAbsoluteUrl('logo.jpg');
@@ -6378,10 +6445,10 @@ async function buildOrderModal() {
       '<div class="order-section-title">Условия</div>' +
       '<div class="order-terms-grid">' +
         '<label class="order-term-field"><span>Предоплата, %</span>' +
-          '<div class="order-term-inline">' +
-            '<input type="number" id="orderPrepayment" min="0" max="100" step="1" value="' + escapeTechHtml(String(state.prepayment)) + '">' +
-            '<span class="order-term-amount" id="orderPrepaymentAmount">' + formatRub(payment.amount) + '</span>' +
-          '</div>' +
+          '<input type="number" id="orderPrepayment" min="0" max="100" step="0.1" value="' + escapeTechHtml(String(state.prepayment)) + '">' +
+        '</label>' +
+        '<label class="order-term-field"><span>Сумма предоплаты, ₽</span>' +
+          '<input type="number" id="orderPrepaymentAmount" min="0" step="0.01" value="' + escapeTechHtml(String(Math.round(payment.amount * 100) / 100)) + '">' +
         '</label>' +
         '<label class="order-term-field"><span>Срок изготовления, рабочих дней</span>' +
           '<input type="number" id="orderLead" min="1" step="1" value="' + escapeTechHtml(String(state.leadDays)) + '">' +
@@ -6527,7 +6594,6 @@ a { color: #000; text-decoration: none; }
 
 function buildOrderPrintHtml() {
   const result = calculatePrice(currentKm);
-  const state = getOrderState();
   const project = getOrderProject();
   const groups = (result.groups || []).filter((group) => group.categories && group.categories.length);
   const drawings = orderDrawingsData || { pdf: [], dxf: [] };
@@ -6537,6 +6603,7 @@ function buildOrderPrintHtml() {
   const excluded = getExcludedSummary();
   const total = Number(result.total) || 0;
   const contractTotal = (Number(result.materialTotal) || 0) + (Number(result.paintTotal) || 0);
+  const state = getOrderState(contractTotal);
   const payment = getOrderPayment(contractTotal, state);
   const requisites = getOrderRequisites();
   const footerRequisites = [
@@ -6577,7 +6644,7 @@ function buildOrderPrintHtml() {
         '<div class="total-row"><span>' + escapeTechHtml(deliveryLabel) + '</span><span>' + formatRub(deliveryEnabled ? result.deliveryCost : 0) + '</span></div>' +
         '<div class="total-row"><span>' + escapeTechHtml(montageLabel) + '</span><span>' + formatRub(montageEnabled ? result.montageCost : 0) + '</span></div>' +
         '<div class="total-row grand"><span>ИТОГО</span><span>' + formatRub(total) + '</span></div>' +
-        '<div class="total-row sub"><span>Предоплата за изготовление (' + escapeTechHtml(String(state.prepayment)) + '% от изготовления и покраски)</span><span>' + formatRub(payment.amount) + '</span></div>' +
+        '<div class="total-row sub"><span>Предоплата за изготовление (' + escapeTechHtml(orderPercentText(state.prepayment)) + '% от изготовления и покраски)</span><span>' + formatRub(payment.amount) + '</span></div>' +
         '<div class="total-row sub"><span>Остаток за изготовление</span><span>' + formatRub(payment.balance) + '</span></div>' +
         '<div class="payment-cards">' +
           '<div class="payment-card"><span>Доставка</span><b>' + (deliveryEnabled ? formatRub(result.deliveryCost) : 'Не включена') + '</b><small>Оплата по факту выполнения</small></div>' +
@@ -6912,6 +6979,8 @@ document.getElementById('btnContract').addEventListener('click', async () => {
     const contractTotal = Number.isFinite(calculatedTotal) && calculatedTotal > 0
       ? calculatedTotal
       : worksTotal + deliveryTotal + montageTotal;
+    const orderState = getOrderState(worksTotal);
+    const orderPayment = getOrderPayment(worksTotal, orderState);
     printContract({
       project: getOrderProject(),
       company: ORDER_COMPANY,
@@ -6919,6 +6988,8 @@ document.getElementById('btnContract').addEventListener('click', async () => {
       contractWorks: worksTotal,
       deliveryCost: deliveryTotal,
       montageCost: montageTotal,
+      prepaymentAmount: orderPayment.amount,
+      prepaymentPercent: orderState.prepayment,
       penalties: !(projectParams && projectParams.contract_penalties === false),
       date: new Date()
     });

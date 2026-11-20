@@ -64,8 +64,8 @@ const CONTRACT_SECTIONS = [
     clauses: [
       '5.1. Общая стоимость по настоящему Договору составляет: {{AMOUNT_RUB}} ({{AMOUNT_WORDS}}) {{RUBLE_WORD}} {{KOPECKS}} {{KOPECK_WORD}}, в том числе: работы по изготовлению и покраске — {{WORKS_AMOUNT}}; доставка — {{DELIVERY_AMOUNT}}; монтаж — {{MONTAGE_AMOUNT}}. НДС не облагается в связи с применением упрощенной системы налогообложения на основании п. 2 статьи 346.11 главы 26.2 НК РФ.',
       '5.2. Стороны устанавливают следующий порядок расчетов:',
-      '— в день подписания настоящего Договора Заказчик оплачивает Подрядчику 50 (пятьдесят) процентов стоимости работ по изготовлению и покраске, что составляет {{PREPAY_AMOUNT}};',
-      '— оставшиеся 50 (пятьдесят) процентов стоимости работ по изготовлению и покраске, что составляет {{REMAINDER_AMOUNT}}, Заказчик оплачивает Подрядчику до вывоза результата работ после уведомления Подрядчика о готовности результата работ;',
+      '— в день подписания настоящего Договора Заказчик оплачивает Подрядчику предоплату за изготовление в размере {{PREPAY_AMOUNT}} ({{PREPAY_PERCENT}} % стоимости работ по изготовлению и покраске);',
+      '— оставшуюся часть стоимости работ по изготовлению и покраске в размере {{REMAINDER_AMOUNT}} Заказчик оплачивает Подрядчику до вывоза результата работ после уведомления Подрядчика о готовности результата работ;',
       '— доставка оплачивается по факту выполнения доставки;',
       '— монтаж оплачивается по факту выполнения монтажа;',
       '— для долгосрочных заказов промежуточные платежи и сроки их внесения устанавливаются отдельным приложением к настоящему Договору.',
@@ -273,6 +273,12 @@ function formatMoney(value) {
   }).format(Number(value) || 0) + ' ₽';
 }
 
+function formatPercent(value) {
+  return new Intl.NumberFormat('ru-RU', {
+    maximumFractionDigits: 2
+  }).format(Number(value) || 0);
+}
+
 function clauseHtml(text) {
   const trimmed = String(text || '').trim();
   if (!trimmed) return '';
@@ -280,13 +286,27 @@ function clauseHtml(text) {
   return '<p>' + esc(trimmed) + '</p>';
 }
 
-function buildContractHtml({ project, company, contractTotal, contractWorks, deliveryCost, montageCost, penalties = true, date }) {
+function buildContractHtml({ project, company, contractTotal, contractWorks, deliveryCost, montageCost, prepaymentAmount, prepaymentPercent, penalties = true, date }) {
   const total = Number(contractTotal) || 0;
   const works = contractWorks === undefined || contractWorks === null
     ? total
     : (Number(contractWorks) || 0);
   const delivery = Number(deliveryCost) || 0;
   const montage = Number(montageCost) || 0;
+  const rawPrepayAmount = Number(prepaymentAmount);
+  const rawPrepayPercent = Number(prepaymentPercent);
+  let prepayAmount;
+  if (Number.isFinite(rawPrepayAmount)) {
+    prepayAmount = Math.min(works, Math.max(0, rawPrepayAmount));
+  } else if (Number.isFinite(rawPrepayPercent)) {
+    prepayAmount = Math.round(works * Math.min(100, Math.max(0, rawPrepayPercent)) / 100 * 100) / 100;
+  } else {
+    prepayAmount = Math.round(works / 2 * 100) / 100;
+  }
+  prepayAmount = Math.round(prepayAmount * 100) / 100;
+  const prepayPercent = works > 0
+    ? Math.round((prepayAmount / works * 100) * 100) / 100
+    : 0;
   const amount = amountParts(total);
   const number = String(project && project.orderNumber || project && project.number || 'Б/Н').trim();
   const title = String(project && project.title || 'Лестница').trim();
@@ -311,8 +331,9 @@ function buildContractHtml({ project, company, contractTotal, contractWorks, del
     '{{WORKS_AMOUNT}}': formatMoney(works),
     '{{DELIVERY_AMOUNT}}': formatMoney(delivery),
     '{{MONTAGE_AMOUNT}}': formatMoney(montage),
-    '{{PREPAY_AMOUNT}}': formatMoney(works / 2),
-    '{{REMAINDER_AMOUNT}}': formatMoney(works - works / 2),
+    '{{PREPAY_AMOUNT}}': formatMoney(prepayAmount),
+    '{{PREPAY_PERCENT}}': formatPercent(prepayPercent),
+    '{{REMAINDER_AMOUNT}}': formatMoney(works - prepayAmount),
     '{{PROJECT_LABEL}}': projectLabel,
     '{{INSTALLATION_ADDRESS}}': installationAddress
   };

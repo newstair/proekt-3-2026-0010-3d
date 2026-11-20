@@ -3,7 +3,7 @@ import { OrbitControls }  from 'three/addons/controls/OrbitControls.js';
 import { ColladaLoader }  from 'three/addons/loaders/ColladaLoader.js';
 import { GLTFLoader }     from 'three/addons/loaders/GLTFLoader.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-import { printContract } from './contract.js?v=f0c7aaec';
+import { printContract } from './contract.js?v=ec5da23f';
 
 /* ═══════════════════════════════════════════════════════════════
    КОНСТАНТЫ
@@ -5658,6 +5658,9 @@ const ORDER_DEFAULTS = {
   prepayment: 50,
   prepaymentAmount: null,
   leadDays: 30,
+  paintDays: '5–7 дней',
+  deliveryDays: '2–5 дней',
+  montageDays: 'в день доставки, до полного завершения',
   validityDays: 14,
   warranty: '12 месяцев'
 };
@@ -6102,6 +6105,9 @@ function getOrderState(totalValue) {
   const prepaymentEl = element('orderPrepayment');
   const amountEl = element('orderPrepaymentAmount');
   const leadEl = element('orderLead');
+  const paintEl = element('orderPaintDays');
+  const deliveryEl = element('orderDeliveryDays');
+  const montageEl = element('orderMontageDays');
   const validityEl = element('orderValidity');
   const warrantyEl = element('orderWarranty');
 
@@ -6146,6 +6152,15 @@ function getOrderState(totalValue) {
       1,
       3650
     )),
+    paintDays: paintEl && orderText(paintEl.value)
+      ? orderText(paintEl.value).slice(0, 200)
+      : orderFormState.paintDays || ORDER_DEFAULTS.paintDays,
+    deliveryDays: deliveryEl && orderText(deliveryEl.value)
+      ? orderText(deliveryEl.value).slice(0, 200)
+      : orderFormState.deliveryDays || ORDER_DEFAULTS.deliveryDays,
+    montageDays: montageEl && orderText(montageEl.value)
+      ? orderText(montageEl.value).slice(0, 200)
+      : orderFormState.montageDays || ORDER_DEFAULTS.montageDays,
     validityDays: Math.round(orderClampNumber(
       validityEl ? validityEl.value : orderFormState.validityDays,
       orderFormState.validityDays,
@@ -6253,7 +6268,10 @@ function buildOrderPaymentCard(title, enabled, amount) {
 }
 
 function buildOrderTermsPreviewHtml(state) {
-  return '<span>Срок изготовления: <b>' + escapeTechHtml(orderLeadDaysText(state.leadDays)) + '</b></span>' +
+  return '<span>Изготовление: <b>' + escapeTechHtml(orderLeadDaysText(state.leadDays)) + '</b></span>' +
+    '<span>Покраска: <b>' + escapeTechHtml(state.paintDays) + '</b></span>' +
+    '<span>Доставка: <b>' + escapeTechHtml(state.deliveryDays) + '</b></span>' +
+    '<span>Монтаж: <b>' + escapeTechHtml(state.montageDays) + '</b></span>' +
     '<span>Гарантия: <b>' + escapeTechHtml(state.warranty) + '</b></span>';
 }
 
@@ -6275,7 +6293,7 @@ function updateOrderTermPreview(total) {
 }
 
 function bindOrderTermInputs(total) {
-  ['orderLead', 'orderValidity', 'orderWarranty'].forEach((id) => {
+  ['orderLead', 'orderPaintDays', 'orderDeliveryDays', 'orderMontageDays', 'orderValidity', 'orderWarranty'].forEach((id) => {
     const input = document.getElementById(id);
     if (!input) return;
     input.addEventListener('input', () => updateOrderTermPreview(total));
@@ -6450,8 +6468,17 @@ async function buildOrderModal() {
         '<label class="order-term-field"><span>Сумма предоплаты, ₽</span>' +
           '<input type="number" id="orderPrepaymentAmount" min="0" step="0.01" value="' + escapeTechHtml(String(Math.round(payment.amount * 100) / 100)) + '">' +
         '</label>' +
-        '<label class="order-term-field"><span>Срок изготовления, рабочих дней</span>' +
+        '<label class="order-term-field"><span>Изготовление, рабочих дней</span>' +
           '<input type="number" id="orderLead" min="1" step="1" value="' + escapeTechHtml(String(state.leadDays)) + '">' +
+        '</label>' +
+        '<label class="order-term-field"><span>Покраска, дней после изготовления</span>' +
+          '<input type="text" id="orderPaintDays" maxlength="200" value="' + escapeTechHtml(state.paintDays) + '">' +
+        '</label>' +
+        '<label class="order-term-field"><span>Доставка, дней после покраски</span>' +
+          '<input type="text" id="orderDeliveryDays" maxlength="200" value="' + escapeTechHtml(state.deliveryDays) + '">' +
+        '</label>' +
+        '<label class="order-term-field"><span>Монтаж</span>' +
+          '<input type="text" id="orderMontageDays" maxlength="200" value="' + escapeTechHtml(state.montageDays) + '">' +
         '</label>' +
         '<label class="order-term-field"><span>Гарантия</span>' +
           '<input type="text" id="orderWarranty" maxlength="200" value="' + escapeTechHtml(state.warranty) + '">' +
@@ -6678,7 +6705,10 @@ function buildOrderPrintHtml() {
 
   const termsHtml =
     '<section class="block terms"><h2 class="block-title">Условия</h2>' +
-      '<p>Срок изготовления: <b>' + escapeTechHtml(orderLeadDaysText(state.leadDays)) + '</b></p>' +
+      '<p>Изготовление: <b>' + escapeTechHtml(orderLeadDaysText(state.leadDays)) + '</b></p>' +
+      '<p>Покраска: <b>' + escapeTechHtml(state.paintDays) + '</b></p>' +
+      '<p>Доставка: <b>' + escapeTechHtml(state.deliveryDays) + '</b></p>' +
+      '<p>Монтаж: <b>' + escapeTechHtml(state.montageDays) + '</b></p>' +
       '<p>Гарантия: <b>' + escapeTechHtml(state.warranty) + '</b></p>' +
       (excluded.length ? '<p>Исключено из заказа: ' + escapeTechHtml(excluded.join(', ')) + '</p>' : '') +
     '</section>';
@@ -6990,6 +7020,12 @@ document.getElementById('btnContract').addEventListener('click', async () => {
       montageCost: montageTotal,
       prepaymentAmount: orderPayment.amount,
       prepaymentPercent: orderState.prepayment,
+      terms: {
+        manufacture: orderLeadDaysText(orderState.leadDays),
+        paint: orderState.paintDays,
+        delivery: orderState.deliveryDays,
+        montage: orderState.montageDays
+      },
       penalties: !(projectParams && projectParams.contract_penalties === false),
       date: new Date()
     });

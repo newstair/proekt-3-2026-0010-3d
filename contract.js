@@ -8,7 +8,7 @@ const CONTRACT_SECTIONS = [
       'б) цвет: согласно Приложению № 1. Цвет по образцу Заказчика: Подрядчик делает выкраски и передает их Заказчику для согласования. Заказчик вправе забрать выкраски с собой на объект для утверждения. Если согласование цвета занимает более двух рабочих дней, срок выполнения работ увеличивается на весь срок согласования. Подрядчик вправе начать покраску другого заказа и вернуться к данному заказу только после окончания начатых работ;',
       'в) технология производства: по технологии Подрядчика.',
       '1.3. Выполнение указанных в п. 1.1 настоящего Договора работ производится Подрядчиком из материалов, принадлежащих Подрядчику.',
-      '1.4. Доставка и монтаж результата работ выполняются Подрядчиком на условиях, указанных в Приложении № 1, и оплачиваются отдельно.'
+      '1.4. Доставка и монтаж результата работ выполняются разными службами; совмещение этих услуг не допускается. Условия указаны в Приложении № 1, оплата — отдельно по факту выполнения каждой услуги.'
     ]
   },
   {
@@ -66,7 +66,8 @@ const CONTRACT_SECTIONS = [
       '5.2. Стороны устанавливают следующий порядок расчетов:',
       '— в день подписания настоящего Договора Заказчик оплачивает Подрядчику 50 (пятьдесят) процентов стоимости работ по изготовлению и покраске, что составляет {{PREPAY_AMOUNT}};',
       '— оставшиеся 50 (пятьдесят) процентов стоимости работ по изготовлению и покраске, что составляет {{REMAINDER_AMOUNT}}, Заказчик оплачивает Подрядчику до вывоза результата работ после уведомления Подрядчика о готовности результата работ;',
-      '— доставка и монтаж оплачиваются по факту их выполнения;',
+      '— доставка оплачивается по факту выполнения доставки;',
+      '— монтаж оплачивается по факту выполнения монтажа;',
       '— для долгосрочных заказов промежуточные платежи и сроки их внесения устанавливаются отдельным приложением к настоящему Договору.',
       'Суммы платежей округляются до целых рублей; окончательный расчет производится с учетом округления.',
       '5.3. Оплата Заказчиком Подрядчику суммы, указанной в п. 5.1 настоящего Договора, производится одним из следующих способов:',
@@ -131,6 +132,40 @@ const CONTRACT_SECTIONS = [
     ]
   }
 ];
+
+function buildContractSections(penalties) {
+  if (penalties !== false) return CONTRACT_SECTIONS;
+
+  const renumber = {
+    '5.5.': '5.4.',
+    '7.5.': '7.2.',
+    '7.6.': '7.3.',
+    '7.7.': '7.4.',
+    '7.8.': '7.5.',
+    '7.9.': '7.6.'
+  };
+
+  return CONTRACT_SECTIONS.map((section) => ({
+    ...section,
+    clauses: section.clauses
+      .filter((clause) =>
+        !/^5\.4\./.test(clause) &&
+        !/^7\.[234]\./.test(clause)
+      )
+      .map((clause) => {
+        let text = clause;
+        for (const [oldPrefix, newPrefix] of Object.entries(renumber)) {
+          if (text.startsWith(oldPrefix)) {
+            text = newPrefix + text.slice(oldPrefix.length);
+            break;
+          }
+        }
+        return text
+          .replace(/п\. 7\.6/g, 'п. 7.3')
+          .replace(/пункта 7\.6/g, 'пункта 7.3');
+      })
+  }));
+}
 
 const COMPANY_REQUISITES = {
   bank: 'Северо-Западный банк ПАО Сбербанк, Приморское ОСБ № 2003, г. Санкт-Петербург',
@@ -245,7 +280,7 @@ function clauseHtml(text) {
   return '<p>' + esc(trimmed) + '</p>';
 }
 
-function buildContractHtml({ project, company, contractTotal, contractWorks, deliveryCost, montageCost, date }) {
+function buildContractHtml({ project, company, contractTotal, contractWorks, deliveryCost, montageCost, penalties = true, date }) {
   const total = Number(contractTotal) || 0;
   const works = contractWorks === undefined || contractWorks === null
     ? total
@@ -282,7 +317,8 @@ function buildContractHtml({ project, company, contractTotal, contractWorks, del
     '{{INSTALLATION_ADDRESS}}': installationAddress
   };
 
-  const sectionsHtml = CONTRACT_SECTIONS.map((section) => {
+  const sections = buildContractSections(penalties);
+  const sectionsHtml = sections.map((section) => {
     const clauses = section.clauses.map((clause) => {
       let text = clause;
       for (const [token, value] of Object.entries(tokens)) {

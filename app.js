@@ -3,7 +3,7 @@ import { OrbitControls }  from 'three/addons/controls/OrbitControls.js';
 import { ColladaLoader }  from 'three/addons/loaders/ColladaLoader.js';
 import { GLTFLoader }     from 'three/addons/loaders/GLTFLoader.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-import { printContract } from './contract.js';
+import { printContract } from './contract.js?v=2b4fea5e';
 
 /* ═══════════════════════════════════════════════════════════════
    КОНСТАНТЫ
@@ -6199,8 +6199,16 @@ function buildOrderTableMarkup(groups, withoutPrices) {
 }
 
 function buildOrderPaymentHtml(payment, state) {
-  return '<div class="order-payment-row"><span>Предоплата ' + escapeTechHtml(String(state.prepayment)) + '% (изготовление и покраска)</span><span>' + formatRub(payment.amount) + '</span></div>' +
-    '<div class="order-payment-row"><span>Остаток по договору</span><span>' + formatRub(payment.balance) + '</span></div>';
+  return '<div class="order-payment-row"><span>Предоплата за изготовление (' + escapeTechHtml(String(state.prepayment)) + '% от изготовления и покраски)</span><span>' + formatRub(payment.amount) + '</span></div>' +
+    '<div class="order-payment-row"><span>Остаток за изготовление</span><span>' + formatRub(payment.balance) + '</span></div>';
+}
+
+function buildOrderPaymentCard(title, enabled, amount) {
+  return '<div class="order-payment-card">' +
+    '<div class="order-payment-card-title">' + escapeTechHtml(title) + '</div>' +
+    '<div class="order-payment-card-sum">' + (enabled ? formatRub(amount) : 'Не включена') + '</div>' +
+    '<div class="order-payment-card-note">' + (enabled ? 'Оплата по факту выполнения' : 'В заказ не включена') + '</div>' +
+  '</div>';
 }
 
 function buildOrderTermsPreviewHtml(state) {
@@ -6356,9 +6364,12 @@ async function buildOrderModal() {
         '<div class="order-totals-row"><span>' + escapeTechHtml(montageLabel) + '</span><span>' + formatRub(montageEnabled ? result.montageCost : 0) + '</span></div>' +
         '<div class="order-totals-row total"><span>ИТОГО</span><span>' + formatRub(result.total) + '</span></div>' +
       '</div>' +
-      '<div class="order-payment-preview" id="orderPaymentPreview">' + buildOrderPaymentHtml(payment, state) +
-        '<div class="order-doc-note">Доставка и монтаж оплачиваются отдельно по факту.</div>' +
-      '</div>';
+      '<div class="order-payment-preview" id="orderPaymentPreview">' + buildOrderPaymentHtml(payment, state) + '</div>' +
+      '<div class="order-payment-cards">' +
+        buildOrderPaymentCard('Доставка', deliveryEnabled, result.deliveryCost) +
+        buildOrderPaymentCard('Монтаж', montageEnabled, result.montageCost) +
+      '</div>' +
+      '<div class="order-doc-note">Доставка и монтаж выполняются разными службами; совмещение не допускается.</div>';
     orderBody.appendChild(totalsSec);
 
     const termsSec = document.createElement('div');
@@ -6460,6 +6471,11 @@ body { font-family: "Segoe UI", Arial, sans-serif; font-size: 6.8pt; line-height
 .total-row.subtotal { border-top: 0.6pt solid #000; font-weight: 700; }
 .total-row.grand { border-top: 0.9pt solid #000; border-bottom: 0.9pt solid #000; font-size: 8.4pt; font-weight: 800; margin-top: 0.5mm; padding: 0.9mm 0; }
 .total-row.sub { font-size: 6.3pt; border-bottom: none; }
+.payment-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5mm; margin-top: 1.2mm; }
+.payment-card { border: 0.5pt solid #000; padding: 1.2mm 1.6mm; }
+.payment-card span { display: block; font-size: 5.8pt; text-transform: uppercase; letter-spacing: .3px; font-weight: 700; }
+.payment-card b { display: block; font-size: 8pt; margin-top: .4mm; }
+.payment-card small { display: block; font-size: 5.7pt; margin-top: .3mm; }
 .terms p { margin: 0.45mm 0; font-size: 6.2pt; line-height: 1.22; }
 .offer-note { font-weight: 700; margin-top: 1mm; }
 .small { font-size: 6.2pt; }
@@ -6561,9 +6577,13 @@ function buildOrderPrintHtml() {
         '<div class="total-row"><span>' + escapeTechHtml(deliveryLabel) + '</span><span>' + formatRub(deliveryEnabled ? result.deliveryCost : 0) + '</span></div>' +
         '<div class="total-row"><span>' + escapeTechHtml(montageLabel) + '</span><span>' + formatRub(montageEnabled ? result.montageCost : 0) + '</span></div>' +
         '<div class="total-row grand"><span>ИТОГО</span><span>' + formatRub(total) + '</span></div>' +
-        '<div class="total-row sub"><span>Предоплата ' + escapeTechHtml(String(state.prepayment)) + '% (изготовление и покраска)</span><span>' + formatRub(payment.amount) + '</span></div>' +
-        '<div class="total-row sub"><span>Остаток по договору</span><span>' + formatRub(payment.balance) + '</span></div>' +
-        '<p class="small">Доставка и монтаж оплачиваются отдельно по факту.</p>' +
+        '<div class="total-row sub"><span>Предоплата за изготовление (' + escapeTechHtml(String(state.prepayment)) + '% от изготовления и покраски)</span><span>' + formatRub(payment.amount) + '</span></div>' +
+        '<div class="total-row sub"><span>Остаток за изготовление</span><span>' + formatRub(payment.balance) + '</span></div>' +
+        '<div class="payment-cards">' +
+          '<div class="payment-card"><span>Доставка</span><b>' + (deliveryEnabled ? formatRub(result.deliveryCost) : 'Не включена') + '</b><small>Оплата по факту выполнения</small></div>' +
+          '<div class="payment-card"><span>Монтаж</span><b>' + (montageEnabled ? formatRub(result.montageCost) : 'Не включена') + '</b><small>Оплата по факту выполнения</small></div>' +
+        '</div>' +
+        '<p class="small">Доставка и монтаж выполняются разными службами; совмещение не допускается.</p>' +
       '</section>';
 
   const partiesHtml =
@@ -6899,6 +6919,7 @@ document.getElementById('btnContract').addEventListener('click', async () => {
       contractWorks: worksTotal,
       deliveryCost: deliveryTotal,
       montageCost: montageTotal,
+      penalties: !(projectParams && projectParams.contract_penalties === false),
       date: new Date()
     });
   } catch (error) {
